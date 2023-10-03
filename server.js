@@ -1,20 +1,11 @@
-let http = require('http');
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
 
-http.createServer(function(req,res){
-    if (req.url == '/') { //check the URL of the current request
-        // set response header
-        res.writeHead(200, { 'Content-Type': 'text/html' }); 
-        // set response content    
-        res.write('<html><body><p>This is home Page.</p></body></html>');
-        res.end();
-    }
-    else if (req.url == "/hello") {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.write('<html><body><p>Hello JJ</p></body></html>');
-        res.end();
-    }
-    else
-        res.end('Invalid Request!');
-    // res.writeHead(200, {'Content-Type': 'text/html'});
-    // res.end('Hello NodeJS from Muzikzz Org');
-}).listen(1234, () => console.log('Server running on localhost:1234...')) ;
+app.get('/', (req, res) => {
+  res.send('Hello,jj!');
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
