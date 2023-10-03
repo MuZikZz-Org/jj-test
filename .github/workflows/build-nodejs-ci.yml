@@ -1,0 +1,151 @@
+name: FeatureBranch Workflow Nodejs.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: #[ "main" ]
+      - 'feature/**'
+  # pull_request:
+  #   branches: [ "main" ]
+  
+
+env: 
+    JobEnvironment: "feature-branch"
+    PackageName: ${{github.event.repository.name}}
+    # ACR
+    AZ_CONTAINER_REGISTRY: ${{ fromJson(vars.JSON).AZ_CONTAINER_REGISTRY }}
+    AZ_CONTAINER_NAME: ${{ fromJson(vars.JSON).AZ_CONTAINER_NAME }}
+    #HELM repo
+    HELM_TEMPLATE_REPO: ${{ fromJson(vars.JSON).HELM_TEMPLATE_REPO }}
+    HELM_TEMPLATE_BRANCH: ${{ fromJson(vars.JSON).HELM_TEMPLATE_BRANCH }}
+    HELM_VALUES_REPO: ${{ fromJson(vars.JSON).HELM_VALUES_REPO }}
+    HELM_VALUES_BRANCH: ${{ fromJson(vars.JSON).HELM_VALUES_BRANCH }}
+    # Azure Blob Stotage 
+    BLOB_STORAGE_ACC: ${{ fromJson(vars.JSON).BLOB_STORAGE_ACC }}
+    BLOB_CONTAINER_NAME: ${{ fromJson(vars.JSON).BLOB_CONTAINER_NAME }}
+    # AKS
+    AKS_RESOURCE_GROUP: ${{ fromJson(vars.JSON).AKS_RESOURCE_GROUP }}
+    AKS_NAME: ${{ fromJson(vars.JSON).AKS_NAME }}
+
+jobs:
+  env_workflow:
+    runs-on: ubuntu-latest
+    name: Preparation Environment
+    outputs: 
+      user: ${{env.docker_user}}
+      pass: ${{env.docker_password}}
+      JobEnvironment: ${{env.JobEnvironment}}
+      PackageName: ${{env.PackageName}}
+      AZ_CONTAINER_REGISTRY: ${{env.AZ_CONTAINER_REGISTRY}}
+      AZ_CONTAINER_NAME: ${{env.AZ_CONTAINER_NAME}}
+      HELM_TEMPLATE_REPO: ${{env.HELM_TEMPLATE_REPO}}
+      HELM_TEMPLATE_BRANCH: ${{env.HELM_TEMPLATE_BRANCH}}
+      HELM_VALUES_REPO: ${{env.HELM_VALUES_REPO}}
+      HELM_VALUES_BRANCH: ${{env.HELM_VALUES_BRANCH}}
+      BLOB_STORAGE_ACC: ${{env.BLOB_STORAGE_ACC}}
+      BLOB_CONTAINER_NAME: ${{env.BLOB_CONTAINER_NAME}}
+      AKS_RESOURCE_GROUP: ${{ env.AKS_RESOURCE_GROUP }}
+      AKS_NAME: ${{ env.AKS_NAME }}
+    steps:
+      - run: |
+          echo "preparing output env"
+ 
+  Setup_AZ_Reources:
+    name: "Calling workflow Azure login"
+    uses: MuZikZz-Org/action-workflow/.github/workflows/az-authen.yaml@main
+    secrets: #inherit
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+  Package_Versioning:
+    needs: env_workflow
+    name: Package versioning
+    uses: MuZikZz-Org/action-workflow/.github/workflows/package-versioning.yaml@main
+
+  OUTPUT_PackageVersioning:
+    runs-on: runner-utility
+    needs: Package_Versioning
+    steps:
+      - name: Display Package Version
+        run: |
+          echo "Package Output form Workflow PackageVersioning ${{ needs.Package_Versioning.outputs.PACKAGE_VERSION }}"
+  
+  Build_Docker_ACR:
+    needs: env_workflow
+    name: "Build Docker to ACR"
+    uses: MuZikZz-Org/action-workflow/.github/workflows/docker-build-acr.yaml@main
+    with:
+      APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
+      AZ_CONTAINER_REGISTRY: ${{needs.env_workflow.outputs.AZ_CONTAINER_REGISTRY}}
+      AZ_CONTAINER_NAME: ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}
+    secrets: #inherit # pass all secrets into reuse-workflow
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      
+  TEST_CALL_OUTPUT:
+    runs-on: runner-utility
+    needs: Build_Docker_ACR
+    steps:
+      - run: |
+          echo ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
+    
+  Helm_Build_Chart: 
+    needs: [env_workflow,Build_Docker_ACR]
+    name: "Helm Build Chart to Blob storage"
+    uses: MuZikZz-Org/action-workflow/.github/workflows/helm-build-chart.yaml@main
+    with:
+      HELM_TEMPLATE_REPO: ${{needs.env_workflow.outputs.HELM_TEMPLATE_REPO}}
+      HELM_TEMPLATE_BRANCH: ${{needs.env_workflow.outputs.HELM_TEMPLATE_BRANCH}}
+      AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
+      AZURE_CONTAINER_NAME: ${{needs.env_workflow.outputs.BLOB_CONTAINER_NAME}}
+      APP_NAME: ${{github.event.repository.name}}
+      APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
+    secrets: #inherit
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+ 
+  Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
+    needs: [env_workflow,Helm_Build_Chart] 
+    name: "Helm deploy to AKS"
+    uses: MuZikZz-Org/action-workflow/.github/workflows/helm-aks.yaml@main
+    with:
+      JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
+      SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
+      APP_NAME: ${{github.event.repository.name}}
+      APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
+      HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
+      HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
+      AKS_RESOURCE_GROUP: ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}}
+      AKS_NAME: ${{needs.env_workflow.outputs.AKS_NAME}}
+      AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
+    secrets: #inherit
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  
+  # Git_tag:
+  #   needs: Build_Docker_ACR
+  #   name: "Pushing git tag"
+  #   uses: MuZikZz-Org/action-workflow/.github/workflows/git-push-tag.yaml@main
+  #   with:
+  #     APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
+      
+  # Create_PR:
+  #   needs: Deploy_helm
+  #   name: create pull reauest to main branch
+  #   uses: MuZikZz-Org/action-workflow/.github/workflows/create-pullrequest.yaml@main
+  #   with:
+  #     SourceCodeRepo:  ${{ github.repository }}
+  #     SourceCodeBranch: ${{github.ref_name}}
+
+  # Clean_namespace:
+  #   needs: [env_workflow,Create_PR]
+  #   name: Clean up feature namespace after mearge
+  #   uses: MuZikZz-Org/action-workflow/.github/workflows/clean-namespace.yaml@main
+  #   with:
+  #     JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
+  #     SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
+  #     SourceCodeRepo:  ${{ github.repository }}
+  #     HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
+  #     HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
+  #     AKS_RESOURCE_GROUP: ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}}
+  #     AKS_NAME: ${{needs.env_workflow.outputs.AKS_NAME}}
+  #     AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
+  #     PR_NUMBER: ${{ needs.Create_PR.outputs.PR_NUMBER }}
+  #   secrets: #inherit
+  #     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
