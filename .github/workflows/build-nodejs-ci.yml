@@ -96,7 +96,7 @@ jobs:
       HELM_TEMPLATE_BRANCH: ${{needs.env_workflow.outputs.HELM_TEMPLATE_BRANCH}}
       AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
       AZURE_CONTAINER_NAME: ${{needs.env_workflow.outputs.BLOB_CONTAINER_NAME}}
-      APP_NAME: ${{github.event.repository.name}}
+      APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
       APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
     secrets: #inherit
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
@@ -108,7 +108,7 @@ jobs:
     with:
       JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
       SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
-      APP_NAME: "hello-test"
+      APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
       APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
       HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
       HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
