@@ -108,7 +108,7 @@ jobs:
     with:
       JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
       SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
-      APP_NAME: "NatthidaK"
+      APP_NAME: "hello-test"
       APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
       HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
       HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
