@@ -80,6 +80,35 @@ jobs:
     secrets: #inherit # pass all secrets into reuse-workflow
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
       
+  Run_docker: 
+      runs-on: runner-utility  
+      needs: [env_workflow, Build_Docker_ACR]
+      outputs:
+        output1: ${{ steps.json_properties.outputs.RELEASE_TAG }}
+      steps:
+        - name: Check out repository code
+          uses: actions/checkout@v3
+  
+        - name: get properties
+          id: json_properties
+          run: |
+            echo "RELEASE_TAG=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+        - run: |
+            echo "Build tag==> ${{ steps.json_properties.outputs.RELEASE_TAG }}"
+  
+        - name: Azure login
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+            
+        - name: start docker login
+          run: |
+            az acr login -n ${{inputs.AZ_CONTAINER_NAME}}
+            
+        - name: run the Docker image
+          run: |    
+            docker run ${{needs.env_workflow.outputs.PackageName}}:${{ steps.json_properties.outputs.RELEASE_TAG }}
+    
   # TEST_CALL_OUTPUT:
   #   runs-on: runner-utility
   #   needs: Build_Docker_ACR
