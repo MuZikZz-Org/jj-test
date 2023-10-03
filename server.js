@@ -10,7 +10,7 @@ http.createServer(function(req,res){
     }
     else if (req.url == "/hello") {
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.write('<html><body><p>Hello NodeJS from Muzikzz Org.</p></body></html>');
+        res.write('<html><body><p>Hello JJ</p></body></html>');
         res.end();
     }
     else
