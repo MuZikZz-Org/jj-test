@@ -1,4 +1,4 @@
-applicationPort: 1234
+applicationPort: 5678
 image:
   repository: sbpocacr.azurecr.io
   pullPolicy: Always
