@@ -80,12 +80,12 @@ jobs:
     secrets: #inherit # pass all secrets into reuse-workflow
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
       
-  TEST_CALL_OUTPUT:
-    runs-on: runner-utility
-    needs: Build_Docker_ACR
-    steps:
-      - run: |
-          echo ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
+  # TEST_CALL_OUTPUT:
+  #   runs-on: runner-utility
+  #   needs: Build_Docker_ACR
+  #   steps:
+  #     - run: |
+  #         echo ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
     
   Helm_Build_Chart: 
     needs: [env_workflow,Build_Docker_ACR]
