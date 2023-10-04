@@ -119,11 +119,7 @@ jobs:
       - name: Azure login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          
-      - name: start docker login
-        run: |
-          az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}          
+          creds: ${{ secrets.AZURE_CREDENTIALS }}        
           
       - name: Deploy TO AKS Cluster
         run: |
@@ -142,6 +138,9 @@ jobs:
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
 
+            # docker login
+            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+            
             helm upgrade --install${{needs.env_workflow.outputs.APP_NAME}} azblob/${{needs.env_workflow.outputs.APP_NAME}} \
             --namespace ${finalBranchName} \
             --values ${{needs.env_workflow.outputs.APP_NAME}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
