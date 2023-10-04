@@ -150,6 +150,9 @@ jobs:
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
             
+            finalBranchName=$(echo  ${{github.ref_name}}  | sed "s|/|-|g")
+            echo "Namespace: ${finalBranchName}" 
+            
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
             --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
