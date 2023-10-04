@@ -142,11 +142,19 @@ jobs:
             cat ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
 
 
-            # docker login
-            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+            # # docker login
+            # az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: natthidak
+          password: Natthida@16
+          
+      - name: eun
+        run: |          
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
-            --namespace ${finalBranchName} \
+            --namespace jj-test \
             --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
     
   # Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
