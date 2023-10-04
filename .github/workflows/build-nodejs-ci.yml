@@ -102,21 +102,67 @@ jobs:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
   Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
+    runs-on: runner-utility
     needs: [env_workflow,Helm_Build_Chart] 
-    name: "Helm deploy to AKS"
-    uses: MuZikZz-Org/action-workflow/.github/workflows/helm-aks.yaml@main
-    with:
-      JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
-      SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
-      APP_NAME: ${{github.event.repository.name}}
-      APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
-      HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
-      HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
-      AKS_RESOURCE_GROUP: ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}}
-      AKS_NAME: ${{needs.env_workflow.outputs.AKS_NAME}}
-      AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
-    secrets: #inherit
-      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+            repository: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}} #helm values repo #helm values repo (MuZikZz-Org/Helm-Vaules)
+            ref: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}} #main
+            # token: ${{ secrets.PAT }}
+      - run: |
+          ls -R
+          echo "Check env"
+          helm version
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}        
+          
+      - name: Deploy TO AKS Cluster
+        run: |
+            echo "Set context k8s"
+            az aks get-credentials --resource-group ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}} --name ${{needs.env_workflow.outputs.AKS_NAME}}
+
+            if [[ ${{needs.env_workflow.outputs.JobEnvironment}} == "feature-branch" ]]; then
+              echo "Original Branch Name:  ${{github.ref_name}} "
+              ## reformat feature branch ##
+              finalBranchName=$(echo  ${{github.ref_name}}  | sed "s|/|-|g")
+              echo "Namespace: ${finalBranchName}"
+                ## create namespace ##
+              kubectl create namespace ${finalBranchName} || true
+            fi
+
+            helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
+            helm repo update 
+
+            # docker login
+            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+            
+            helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
+            --namespace ${finalBranchName} \
+            --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
+    
+        
+
+  # Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
+  #   needs: [env_workflow,Helm_Build_Chart] 
+  #   name: "Helm deploy to AKS"
+  #   uses: MuZikZz-Org/action-workflow/.github/workflows/helm-aks.yaml@main
+  #   with:
+  #     JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
+  #     SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
+  #     APP_NAME: ${{github.event.repository.name}}
+  #     APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
+  #     HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
+  #     HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
+  #     AKS_RESOURCE_GROUP: ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}}
+  #     AKS_NAME: ${{needs.env_workflow.outputs.AKS_NAME}}
+  #     AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
+  #   secrets: #inherit
+  #     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
  
 
   
