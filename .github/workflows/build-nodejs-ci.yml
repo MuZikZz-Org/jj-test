@@ -121,6 +121,26 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}        
           
+  Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
+    runs-on: runner-utility
+    needs: [env_workflow,Helm_Build_Chart] 
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+            repository: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}} #helm values repo #helm values repo (MuZikZz-Org/Helm-Vaules)
+            ref: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}} #main
+            # token: ${{ secrets.PAT }}
+      - run: |
+          ls -R
+          echo "Check env"
+          helm version
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}        
+          
       - name: Deploy TO AKS Cluster
         run: |
             echo "Set context k8s"
@@ -135,28 +155,17 @@ jobs:
               kubectl create namespace ${finalBranchName} || true
             fi
 
-      - name: Azure Container Registry Login 
-        uses: Azure/docker-login@v1 
-        with:
-          # Container registry server url
-          login-server: sbpocacr.azurecr.io
-          # Container registry username
-          username: ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
-          # Container registry password
-          password: ${{ secrets.ACR_PASSWORD }} 
-
-      - name: run
-        run: |
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
-            
-            finalBranchName=$(echo  ${{github.ref_name}}  | sed "s|/|-|g")
-            echo "Namespace: ${finalBranchName}" 
+
+            # docker login
+            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
             --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
     
+  
         
 
   # Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
