@@ -151,7 +151,7 @@ jobs:
           username: natthidak
           password: Natthida@16
           
-      - name: eun
+      - name: run
         run: |          
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace jj-test \
