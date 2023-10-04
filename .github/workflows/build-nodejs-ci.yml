@@ -135,12 +135,20 @@ jobs:
               kubectl create namespace ${finalBranchName} || true
             fi
 
+      - name: Azure Container Registry Login 
+        uses: Azure/docker-login@v1 
+        with:
+          # Container registry server url
+          login-server: sbpocacr.azurecr.io
+          # Container registry username
+          username: ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+          # Container registry password
+          password: ${{ secrets.ACR_PASSWORD }} 
+
+      - name: run
+        run: |
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
-
-            # docker login
-            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
-            echo "acr"
             
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
