@@ -142,21 +142,10 @@ jobs:
             # docker login
             az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
-            # helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
-            # --namespace ${finalBranchName} \
-            # --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
+            helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
+            --namespace ${finalBranchName} \
+            --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
     
-         
-      - name: Deploy to AKS
-        id: deploy-aks
-        uses: Azure/k8s-deploy@v4
-        with:
-          namespace: 'jj-test'
-          chart: 'azblob/${{needs.env_workflow.outputs.PackageName}}'  # Path to your Helm chart
-          release: '${{needs.env_workflow.outputs.PackageName}}'  # Provide a release name
-          values: '${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml'  # Path to your values.yaml file
-          pull-images: true  # Use 'true' or 'false' here
-
   # Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
   #   needs: [env_workflow,Helm_Build_Chart] 
   #   name: "Helm deploy to AKS"
