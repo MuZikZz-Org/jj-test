@@ -141,8 +141,6 @@ jobs:
             # docker login
             az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             echo "acr"
-            docker login sbpocacr.azurecr.io
-            echo "docker"
             
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
