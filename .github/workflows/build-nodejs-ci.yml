@@ -126,7 +126,7 @@ jobs:
             echo "Set context k8s"
             az aks get-credentials --resource-group ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}} --name ${{needs.env_workflow.outputs.AKS_NAME}}
 
-            if [[ ${{inputs.JobEnvironment}} == "feature-branch" ]]; then
+            if [[ ${{needs.env_workflow.outputs.JobEnvironment}} == "feature-branch" ]]; then
               echo "Original Branch Name:  ${{github.ref_name}} "
               ## reformat feature branch ##
               finalBranchName=$(echo  ${{github.ref_name}}  | sed "s|/|-|g")
