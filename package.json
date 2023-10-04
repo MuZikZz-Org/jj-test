@@ -1,4 +1,12 @@
 {
-    "name": "my-action-app",
-    "version": "1.0.0"
-  }
+  "name": "nginx-node-app",
+  "version": "1.0.1",
+  "description": "NGINX and Node.js example",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {},
+  "author": "Your Name",
+  "license": "ISC"
+}

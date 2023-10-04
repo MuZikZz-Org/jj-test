@@ -79,7 +79,7 @@ jobs:
       AZ_CONTAINER_NAME: ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}
     secrets: #inherit # pass all secrets into reuse-workflow
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-      
+
   # TEST_CALL_OUTPUT:
   #   runs-on: runner-utility
   #   needs: Build_Docker_ACR
