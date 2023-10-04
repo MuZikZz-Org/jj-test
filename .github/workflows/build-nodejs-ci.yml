@@ -141,9 +141,9 @@ jobs:
             # docker login
             az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
-            helm upgrade --install${{needs.env_workflow.outputs.APP_NAME}} azblob/${{needs.env_workflow.outputs.APP_NAME}} \
+            helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
-            --values ${{needs.env_workflow.outputs.APP_NAME}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
+            --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
     
     
     # needs: [env_workflow,Helm_Build_Chart] 
