@@ -141,7 +141,6 @@ jobs:
 
             # docker login
             az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
-            docker pull sbpocacr.azurecr.io/jj-test:1.0.1
             
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
