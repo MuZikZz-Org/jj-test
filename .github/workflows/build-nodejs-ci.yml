@@ -80,7 +80,6 @@ jobs:
     secrets: #inherit # pass all secrets into reuse-workflow
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
- 
   # TEST_CALL_OUTPUT:
   #   runs-on: runner-utility
   #   needs: Build_Docker_ACR
@@ -97,11 +96,11 @@ jobs:
       HELM_TEMPLATE_BRANCH: ${{needs.env_workflow.outputs.HELM_TEMPLATE_BRANCH}}
       AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
       AZURE_CONTAINER_NAME: ${{needs.env_workflow.outputs.BLOB_CONTAINER_NAME}}
-      APP_NAME: ${{github.event.repository.name}}
+      APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
       APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
     secrets: #inherit
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
- 
+
   Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
     runs-on: runner-utility
     needs: [env_workflow,Helm_Build_Chart] 
