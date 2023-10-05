@@ -158,7 +158,7 @@ jobs:
             helm repo update 
 
             # docker login
-            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+            # az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
             kubectl create secret docker-registry acr-registry \
                 --namespace ${finalBranchName} \
