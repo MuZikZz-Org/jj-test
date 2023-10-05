@@ -69,35 +69,17 @@ jobs:
         run: |
           echo "Package Output form Workflow PackageVersioning ${{ needs.Package_Versioning.outputs.PACKAGE_VERSION }}"
   
-  # Build_Docker_ACR:
-  #   needs: env_workflow
-  #   name: "Build Docker to ACR"
-  #   uses: MuZikZz-Org/action-workflow/.github/workflows/docker-build-acr.yaml@main
-  #   with:
-  #     APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
-  #     AZ_CONTAINER_REGISTRY: ${{needs.env_workflow.outputs.AZ_CONTAINER_REGISTRY}}
-  #     AZ_CONTAINER_NAME: ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}
-  #   secrets: #inherit # pass all secrets into reuse-workflow
-  #     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-  docker-build-push:
+  Build_Docker_ACR:
     needs: env_workflow
-    runs-on: runner-utility
-    # Map the job outputs to step outputs
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v3
-  
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: natthidak
-          password: ${{secrets.JJ_DOCKERHUB}}  
-          
-      - name: Build the Docker image
-        run: |
-          docker build . --file Dockerfile --tag jj-test:1.0.1
-          docker tag jj-test:1.0.1 natthidak/jj-test:1.0.1
-          docker push natthidak/jj-test:1.0.1
+    name: "Build Docker to ACR"
+    uses: MuZikZz-Org/action-workflow/.github/workflows/docker-build-acr.yaml@main
+    with:
+      APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
+      AZ_CONTAINER_REGISTRY: ${{needs.env_workflow.outputs.AZ_CONTAINER_REGISTRY}}
+      AZ_CONTAINER_NAME: ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}
+    secrets: #inherit # pass all secrets into reuse-workflow
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
  
   # TEST_CALL_OUTPUT:
   #   runs-on: runner-utility
@@ -107,7 +89,7 @@ jobs:
   #         echo ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
     
   Helm_Build_Chart: 
-    needs: [env_workflow,docker-build-push]
+    needs: [env_workflow,Build_Docker_ACR]
     name: "Helm Build Chart to Blob storage"
     uses: MuZikZz-Org/action-workflow/.github/workflows/helm-build-chart.yaml@main
     with:
@@ -115,11 +97,11 @@ jobs:
       HELM_TEMPLATE_BRANCH: ${{needs.env_workflow.outputs.HELM_TEMPLATE_BRANCH}}
       AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
       AZURE_CONTAINER_NAME: ${{needs.env_workflow.outputs.BLOB_CONTAINER_NAME}}
-      APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
-      APP_VERSION: 1.0.1 #${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
+      APP_NAME: ${{github.event.repository.name}}
+      APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
     secrets: #inherit
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-
+ 
   Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
     runs-on: runner-utility
     needs: [env_workflow,Helm_Build_Chart] 
