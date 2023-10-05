@@ -139,7 +139,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}        
-               
           
       - name: Deploy TO AKS Cluster
         run: |
@@ -158,24 +157,21 @@ jobs:
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
 
-            cat ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
-
-
-            # # docker login
-            # az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+            # docker login
+            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: natthidak
-          password: ${{secrets.JJ_DOCKERHUB}}
-          
-      - name: run
-        run: |          
+            kubectl create secret docker-registry acr-registry \
+                --namespace ${finalBranchName} \
+                --docker-server=${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}.azurecr.io \
+                --docker-username=${{ secrets.AZURE_CLIENT_ID }} \
+                --docker-password=${{ secrets.AZURE_CLIENT_SECRET }}
+            echo "secret"
+            
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
-            --namespace jj-test \
+            --namespace ${finalBranchName} \
             --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml    
     
+  
   # Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
   #   needs: [env_workflow,Helm_Build_Chart] 
   #   name: "Helm deploy to AKS"
