@@ -138,16 +138,7 @@ jobs:
 
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
-            
-            # kubectl create secret docker-registry acr-registry \
-            #     --namespace ${finalBranchName} \
-            #     --docker-server=${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}}.azurecr.io \
-            #     --docker-username=${{ secrets.AZURE_CLIENT_ID }} \
-            #     --docker-password=${{ secrets.AZURE_CLIENT_SECRET }}
-            # echo "secret"
-            
-            # # docker login
-            # az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
+
       - name: login
         uses: azure/docker-login@v1
         with:
@@ -160,25 +151,7 @@ jobs:
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace jj-test \
             --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml 
-  # Deploy_helm:  ## now use Helm values form https://github.com/brightza008/poc-helmchart.git
-  #   needs: [env_workflow,Helm_Build_Chart] 
-  #   name: "Helm deploy to AKS"
-  #   uses: MuZikZz-Org/action-workflow/.github/workflows/helm-aks.yaml@main
-  #   with:
-  #     JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
-  #     SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
-  #     APP_NAME: ${{github.event.repository.name}}
-  #     APP_VERSION: ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
-  #     HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
-  #     HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
-  #     AKS_RESOURCE_GROUP: ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}}
-  #     AKS_NAME: ${{needs.env_workflow.outputs.AKS_NAME}}
-  #     AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
-  #   secrets: #inherit
-  #     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
- 
 
-  
   # Git_tag:
   #   needs: Build_Docker_ACR
   #   name: "Pushing git tag"
@@ -193,20 +166,3 @@ jobs:
   #   with:
   #     SourceCodeRepo:  ${{ github.repository }}
   #     SourceCodeBranch: ${{github.ref_name}}
-
-  # Clean_namespace:
-  #   needs: [env_workflow,Create_PR]
-  #   name: Clean up feature namespace after mearge
-  #   uses: MuZikZz-Org/action-workflow/.github/workflows/clean-namespace.yaml@main
-  #   with:
-  #     JobEnvironment: ${{needs.env_workflow.outputs.JobEnvironment}}  #feature-branch
-  #     SourceCodeBranch: ${{github.ref_name}}  #feature/test/1
-  #     SourceCodeRepo:  ${{ github.repository }}
-  #     HELM_VALUES_REPO: ${{needs.env_workflow.outputs.HELM_VALUES_REPO}}
-  #     HELM_VALUES_BRANCH: ${{needs.env_workflow.outputs.HELM_VALUES_BRANCH}}
-  #     AKS_RESOURCE_GROUP: ${{needs.env_workflow.outputs.AKS_RESOURCE_GROUP}}
-  #     AKS_NAME: ${{needs.env_workflow.outputs.AKS_NAME}}
-  #     AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
-  #     PR_NUMBER: ${{ needs.Create_PR.outputs.PR_NUMBER }}
-  #   secrets: #inherit
-  #     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
