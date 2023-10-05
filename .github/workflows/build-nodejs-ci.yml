@@ -119,7 +119,8 @@ jobs:
       - name: Azure login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}        
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  
+           
           
       - name: Deploy TO AKS Cluster
         run: |
@@ -145,7 +146,7 @@ jobs:
             #     --docker-password=${{ secrets.AZURE_CLIENT_SECRET }}
             # echo "secret"
             
-            docker login
+            # docker login
             az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
