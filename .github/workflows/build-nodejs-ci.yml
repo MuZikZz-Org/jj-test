@@ -107,7 +107,7 @@ jobs:
   #         echo ${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }}
     
   Helm_Build_Chart: 
-    needs: [env_workflow] #,Build_Docker_ACR
+    needs: [env_workflow,docker-build-push]
     name: "Helm Build Chart to Blob storage"
     uses: MuZikZz-Org/action-workflow/.github/workflows/helm-build-chart.yaml@main
     with:
@@ -116,7 +116,7 @@ jobs:
       AZURE_STORAGE_ACC_NAME: ${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}
       AZURE_CONTAINER_NAME: ${{needs.env_workflow.outputs.BLOB_CONTAINER_NAME}}
       APP_NAME: ${{needs.env_workflow.outputs.PackageName}}
-      APP_VERSION: "1.0.1" #${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
+      APP_VERSION: 1.0.1 #${{ needs.Build_Docker_ACR.outputs.PACKAGE_VERSION }} # use the output (app version) from docker-build-acr.yaml
     secrets: #inherit
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
