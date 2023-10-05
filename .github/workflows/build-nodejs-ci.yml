@@ -149,7 +149,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: natthidak
-          password: Natthida@16
+          password: ${{secretsJJ_DOCKERHUB}}
           
       - name: run
         run: |          
