@@ -137,9 +137,6 @@ jobs:
 
             helm repo add azblob https://${{needs.env_workflow.outputs.BLOB_STORAGE_ACC}}.blob.core.windows.net/charts
             helm repo update 
-
-            # docker login
-            # az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
             kubectl create secret docker-registry acr-registry \
                 --namespace ${finalBranchName} \
@@ -147,6 +144,9 @@ jobs:
                 --docker-username=${{ secrets.AZURE_CLIENT_ID }} \
                 --docker-password=${{ secrets.AZURE_CLIENT_SECRET }}
             echo "secret"
+            
+            docker login
+            az acr login -n ${{needs.env_workflow.outputs.AZ_CONTAINER_NAME}} 
             
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
             --namespace ${finalBranchName} \
