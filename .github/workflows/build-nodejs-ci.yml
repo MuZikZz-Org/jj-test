@@ -80,6 +80,7 @@ jobs:
   #   secrets: #inherit # pass all secrets into reuse-workflow
   #     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
   docker-build-push:
+    needs: env_workflow
     runs-on: runner-utility
     # Map the job outputs to step outputs
     steps:
