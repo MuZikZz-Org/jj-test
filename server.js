@@ -1,10 +1,15 @@
-// server.js
-
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
 const server = http.createServer((req, res) => {
+  if (req.url === '/healthz') {
+    // Handle readiness and liveness probe request
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('OK');
+    return;
+  }
+
   // Serve static files from the 'public' directory
   const filePath = path.join(__dirname, 'public', req.url);
   fs.readFile(filePath, (err, data) => {
