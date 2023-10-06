@@ -1,11 +1,11 @@
 # Use an official NGINX runtime as the base image
-FROM nginx:latest
+FROM nodejs:18.18.0-alpine
 
 # Set the working directory to /app
 WORKDIR /app
 
 # Install Node.js and npm
-RUN apt-get update && apt-get install -y nodejs npm
+# RUN apt-get update && apt-get install -y nodejs npm
 
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
