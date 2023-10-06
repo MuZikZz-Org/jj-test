@@ -17,7 +17,7 @@ RUN npm install
 COPY . .
 
 # Expose port 80 for NGINX
-EXPOSE 80
+EXPOSE 3000
 
 # Start NGINX and your Node.js application
 CMD ["node", "server.js"]
