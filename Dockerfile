@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 80
 
 # Start NGINX and your Node.js application
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]
