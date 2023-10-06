@@ -1,6 +1,6 @@
 {
   "name": "nginx-node-app",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "NGINX and Node.js example",
   "main": "server.js",
   "scripts": {
