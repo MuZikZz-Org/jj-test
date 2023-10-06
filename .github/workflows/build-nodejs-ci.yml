@@ -149,7 +149,7 @@ jobs:
       - name: Deploy 
         run: |
             helm upgrade --install ${{needs.env_workflow.outputs.PackageName}} azblob/${{needs.env_workflow.outputs.PackageName}} \
-            --namespace jj-test \
+            --namespace jj-test2 \
             --values ${{needs.env_workflow.outputs.PackageName}}/values-${{needs.env_workflow.outputs.JobEnvironment}}.yaml 
 
   # Git_tag:
