@@ -1,31 +1,21 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+let http = require('http');
 
-const server = http.createServer((req, res) => {
-  if (req.url === '/healthz') {
-    // Handle readiness and liveness probe request
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('OK');
-    return;
-  }
-
-  // Serve static files from the 'public' directory
-  const filePath = path.join(__dirname, 'public', req.url);
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('Not Found');
-      return;
+http.createServer(function(req,res){
+    if (req.url == '/') { //check the URL of the current request
+        // set response header
+        res.writeHead(200, { 'Content-Type': 'text/html' }); 
+        // set response content    
+        res.write('<html><body><p>This is home Page.</p></body></html>');
+        res.end();
     }
-
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(data);
-  });
-});
-
-const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+    else if (req.url == "/healthz") {
+        // Handle readiness and liveness probe request
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('OK');
+        return;
+    }
+    else
+        res.end('Invalid Request!');
+    // res.writeHead(200, {'Content-Type': 'text/html'});
+    // res.end('Hello NodeJS from Muzikzz Org');
+}).listen(1234, () => console.log('Server running on localhost:1234...')) ;
