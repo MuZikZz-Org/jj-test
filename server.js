@@ -1,7 +1,7 @@
 let http = require('http');
 
 http.createServer(function(req,res){
-    if (req.url == '/') { //check the URL of the current request
+    if (req.url == '/home') { //check the URL of the current request
         // set response header
         res.writeHead(200, { 'Content-Type': 'text/html' }); 
         // set response content    
