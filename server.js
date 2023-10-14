@@ -8,6 +8,7 @@ const server = http.createServer((req, res) => {
     } else if (req.url === '/healthz') {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.write('<html><body><p>Healthy</p></body></html>');
+        res.end();
         // res.writeHead(200, { 'Content-Type': 'text/plain' });
         // res.end('OK');
     } else {
