@@ -6,8 +6,10 @@ const server = http.createServer((req, res) => {
         res.write('<html><body><p>This is home Page.</p></body></html>');
         res.end();
     } else if (req.url === '/healthz') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('OK');
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.write('<html><body><p>Healthy</p></body></html>');
+        // res.writeHead(200, { 'Content-Type': 'text/plain' });
+        // res.end('OK');
     } else {
         res.end('Invalid Request!');
     }
