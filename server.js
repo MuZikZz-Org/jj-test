@@ -7,7 +7,7 @@ const server = http.createServer((req, res) => {
         res.end();
     } else if (req.url === '/hello') {
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.write('<html><body><p>Hello NodeJS from Muzikzz Org.</p></body></html>');
+        res.write('<html><body><p>Hello</p></body></html>');
         res.end();
     } else {
         res.end('Invalid Request!');
